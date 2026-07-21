@@ -1,0 +1,75 @@
+name: Release
+
+# Triggered by a push to master whose HEAD commit message's first line is
+# exactly a version tag, e.g. "v1.2.5" or "v0.1.1" (nothing else on that
+# line). This is intentionally strict — a message that merely *mentions* a
+# version somewhere ("fix v2 API bug") must not accidentally cut a release.
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from commit message
+        id: version
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          FIRST_LINE=$(printf '%s\n' "$COMMIT_MESSAGE" | head -n1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+          if printf '%s' "$FIRST_LINE" | grep -qP '^v[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "tag=$FIRST_LINE" >> "$GITHUB_OUTPUT"
+            echo "version=${FIRST_LINE#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Commit message first line ('$FIRST_LINE') is not a bare version tag, skipping release."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        if: steps.version.outputs.found == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.version.outputs.found == 'true'
+        run: npm ci
+
+      - name: Run tests
+        if: steps.version.outputs.found == 'true'
+        run: npm test
+
+      - name: Set package.json version for this build
+        if: steps.version.outputs.found == 'true'
+        run: npm pkg set version=${{ steps.version.outputs.version }}
+
+      - name: Package extension (.vsix)
+        if: steps.version.outputs.found == 'true'
+        run: npx @vscode/vsce package --no-dependencies --allow-missing-repository -o "bitrix-tools-${{ steps.version.outputs.version }}.vsix"
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.found == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          files: bitrix-tools-${{ steps.version.outputs.version }}.vsix
+
+      - name: Publish to VS Code Marketplace
+        # Only attempted if a Marketplace token secret has been configured.
+        # See the setup notes in this file's accompanying documentation.
+        if: steps.version.outputs.found == 'true' && secrets.VSCE_PAT != ''
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx @vscode/vsce publish --no-dependencies -p "$VSCE_PAT"
