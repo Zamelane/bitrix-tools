@@ -13,19 +13,30 @@ export class ComponentLinkProvider implements vscode.DocumentLinkProvider {
     }
 
     const documentDir = path.dirname(document.uri.fsPath);
-    const links = await this.componentService.findComponentLinks(
+    const siteTemplate = this.readSiteTemplateSetting(document.uri);
+
+    const links = await this.componentService.findLinks(
       document.getText(),
-      documentDir
+      documentDir,
+      siteTemplate
     );
 
-    return links.map(({ reference, targetPath }) => {
+    return links.map(({ start, end, targetPath, tooltip }) => {
       const range = new vscode.Range(
-        document.positionAt(reference.start),
-        document.positionAt(reference.end)
+        document.positionAt(start),
+        document.positionAt(end)
       );
       const link = new vscode.DocumentLink(range, vscode.Uri.file(targetPath));
-      link.tooltip = `Open ${reference.namespace}:${reference.name}`;
+      link.tooltip = tooltip;
       return link;
     });
+  }
+
+  private readSiteTemplateSetting(uri: vscode.Uri): string | null {
+    const value = vscode.workspace
+      .getConfiguration("bitrixTools", uri)
+      .get<string>("siteTemplate", "")
+      .trim();
+    return value === "" ? null : value;
   }
 }

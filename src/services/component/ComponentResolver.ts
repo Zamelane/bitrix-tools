@@ -3,6 +3,11 @@ import { PathExists } from "./types";
 
 const COMPONENT_ROOTS = ["local", "bitrix"] as const;
 
+// component.php is the conventional entry point; class.php is the next
+// best thing when a component only ships a component class with no
+// standalone component.php (common for newer/OOP-style components).
+const COMPONENT_ENTRY_FILES = ["component.php", "class.php"] as const;
+
 // Bounds the upward directory walk in findSiteRoot so a file with no
 // Bitrix ancestor (e.g. opened outside any site) can't scan past a
 // sane number of levels before giving up.
@@ -78,6 +83,12 @@ export async function resolveComponentFile(
     return null;
   }
 
-  const entryFile = path.join(dir, "component.php");
-  return (await exists(entryFile)) ? entryFile : dir;
+  for (const fileName of COMPONENT_ENTRY_FILES) {
+    const candidate = path.join(dir, fileName);
+    if (await exists(candidate)) {
+      return candidate;
+    }
+  }
+
+  return dir;
 }

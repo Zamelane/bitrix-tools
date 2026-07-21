@@ -52,7 +52,18 @@ test("resolveComponentFile points at component.php when present", async () => {
   assert.equal(result, entry);
 });
 
-test("resolveComponentFile falls back to the directory when component.php is missing", async () => {
+test("resolveComponentFile falls back to class.php when component.php is missing", async () => {
+  const root = "/site";
+  const dir = path.join(root, "local", "components", "xpage", "simple");
+  const classFile = path.join(dir, "class.php");
+  const exists = fakeFs([dir, classFile]);
+
+  const result = await resolveComponentFile("xpage", "simple", root, exists);
+
+  assert.equal(result, classFile);
+});
+
+test("resolveComponentFile falls back to the directory when neither component.php nor class.php exist", async () => {
   const root = "/site";
   const dir = path.join(root, "local", "components", "bitrix", "catalog");
   const exists = fakeFs([dir]);

@@ -15,7 +15,18 @@
     "onLanguage:php"
   ],
   "main": "./out/extension.js",
-  "contributes": {},
+  "contributes": {
+    "configuration": {
+      "title": "Bitrix Tools",
+      "properties": {
+        "bitrixTools.siteTemplate": {
+          "type": "string",
+          "default": "",
+          "description": "Site template folder name (under local/templates or bitrix/templates) to use when resolving IncludeComponent template links. Leave empty to auto-detect — if multiple site templates exist on disk, the first one alphabetically is used as a best guess."
+        }
+      }
+    }
+  },
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -w -p ./",

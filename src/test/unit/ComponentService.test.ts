@@ -8,7 +8,11 @@ function fakeFs(existingPaths: string[]) {
   return async (candidate: string) => set.has(candidate);
 }
 
-test("resolves every matched component to its file, skipping ones that don't exist", async () => {
+function fakeListDirectories(entries: Record<string, string[]> = {}) {
+  return async (dirPath: string) => entries[dirPath] ?? [];
+}
+
+test("resolves both the component and its template, skipping calls that resolve to nothing", async () => {
   const root = "/site";
   const catalogEntry = path.join(
     root,
@@ -18,31 +22,45 @@ test("resolves every matched component to its file, skipping ones that don't exi
     "catalog",
     "component.php"
   );
+  const templateEntry = path.join(
+    root,
+    "local",
+    "components",
+    "bitrix",
+    "catalog",
+    "templates",
+    "catalog",
+    "template.php"
+  );
   const service = new ComponentService(
     fakeFs([
       path.join(root, "bitrix", "modules"),
       path.dirname(catalogEntry),
       catalogEntry,
-    ])
+      path.dirname(templateEntry),
+      templateEntry,
+    ]),
+    fakeListDirectories()
   );
   const php = `
     IncludeComponent("bitrix:catalog", "catalog", []);
     IncludeComponent("bitrix:missing", "template", []);
   `;
 
-  const links = await service.findComponentLinks(php, root);
+  const links = await service.findLinks(php, root, null);
 
-  assert.equal(links.length, 1);
-  assert.equal(links[0].reference.name, "catalog");
+  assert.equal(links.length, 2);
   assert.equal(links[0].targetPath, catalogEntry);
+  assert.equal(links[1].targetPath, templateEntry);
 });
 
 test("returns an empty list when the document isn't inside a Bitrix site", async () => {
-  const service = new ComponentService(fakeFs([]));
+  const service = new ComponentService(fakeFs([]), fakeListDirectories());
 
-  const links = await service.findComponentLinks(
+  const links = await service.findLinks(
     `IncludeComponent("bitrix:catalog", "catalog", []);`,
-    "/some/random/project"
+    "/some/random/project",
+    null
   );
 
   assert.deepEqual(links, []);
@@ -64,14 +82,80 @@ test("finds the site root when the docroot is nested below the document", async 
       path.join(siteRoot, "bitrix", "modules"),
       path.dirname(catalogEntry),
       catalogEntry,
-    ])
+    ]),
+    fakeListDirectories()
   );
 
-  const links = await service.findComponentLinks(
+  const links = await service.findLinks(
     `IncludeComponent("bitrix:catalog", "catalog", []);`,
-    documentDir
+    documentDir,
+    null
   );
 
   assert.equal(links.length, 1);
   assert.equal(links[0].targetPath, catalogEntry);
+});
+
+test("respects the configured siteTemplate when resolving the template link", async () => {
+  const root = "/site";
+  const wantedTemplate = path.join(
+    root,
+    "local",
+    "templates",
+    "site_two",
+    "components",
+    "bitrix",
+    "catalog",
+    "catalog"
+  );
+  const otherTemplate = path.join(
+    root,
+    "local",
+    "templates",
+    "site_one",
+    "components",
+    "bitrix",
+    "catalog",
+    "catalog"
+  );
+  const service = new ComponentService(
+    fakeFs([path.join(root, "bitrix", "modules"), wantedTemplate, otherTemplate]),
+    fakeListDirectories({
+      [path.join(root, "local", "templates")]: ["site_one", "site_two"],
+    })
+  );
+
+  const links = await service.findLinks(
+    `IncludeComponent("bitrix:catalog", "catalog", []);`,
+    root,
+    "site_two"
+  );
+
+  assert.equal(links.length, 1);
+  assert.equal(links[0].targetPath, wantedTemplate);
+});
+
+test("falls back to class.php when the component has no component.php", async () => {
+  const root = "/site";
+  const classFile = path.join(
+    root,
+    "local",
+    "components",
+    "xpage",
+    "simple",
+    "class.php"
+  );
+  const service = new ComponentService(
+    fakeFs([path.join(root, "bitrix", "modules"), path.dirname(classFile), classFile]),
+    fakeListDirectories()
+  );
+
+  const links = await service.findLinks(
+    `IncludeComponent("xpage:simple", "", []);`,
+    root,
+    null
+  );
+
+  const componentLink = links.find((link) => link.targetPath === classFile);
+  assert.ok(componentLink, "expected a link resolving to class.php");
 });
