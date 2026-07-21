@@ -35,6 +35,7 @@ export class ComponentService {
       );
       if (componentPath) {
         links.push({
+          kind: "direct",
           start: call.component.start,
           end: call.component.end,
           targetPath: componentPath,
@@ -42,7 +43,7 @@ export class ComponentService {
         });
       }
 
-      const templatePath = await resolveTemplateFile(
+      const templateResolution = await resolveTemplateFile(
         call.template.namespace,
         call.template.name,
         call.template.templateName,
@@ -51,12 +52,26 @@ export class ComponentService {
         this.pathExists,
         this.listDirectories
       );
-      if (templatePath) {
+      const templateLabel = call.template.templateName || ".default";
+
+      if (templateResolution.kind === "resolved") {
         links.push({
+          kind: "direct",
           start: call.template.start,
           end: call.template.end,
-          targetPath: templatePath,
-          tooltip: `Open template "${call.template.templateName || ".default"}"`,
+          targetPath: templateResolution.path,
+          tooltip: `Open template "${templateLabel}"`,
+        });
+      } else if (templateResolution.kind === "ambiguous") {
+        links.push({
+          kind: "ambiguous",
+          start: call.template.start,
+          end: call.template.end,
+          tooltip: `Choose which site template to open for "${templateLabel}"`,
+          candidates: templateResolution.candidates.map((candidate) => ({
+            label: candidate.siteTemplateName,
+            targetPath: candidate.path,
+          })),
         });
       }
     }

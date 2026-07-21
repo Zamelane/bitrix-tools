@@ -1,12 +1,20 @@
 import * as path from "node:path";
-import { ListDirectories, PathExists } from "./types";
+import {
+  ListDirectories,
+  PathExists,
+  TemplateCandidate,
+  TemplateResolution,
+} from "./types";
 
 // Bitrix's convention: an empty template name in IncludeComponent means
 // "use the component's shipped default template", which lives in a
 // folder literally named ".default".
 const DEFAULT_TEMPLATE_FOLDER = ".default";
 
-// local/ overrides bitrix/, same convention as component resolution.
+// local/ overrides bitrix/ as a whole tier, same convention as component
+// resolution: if local/templates has ANY match, bitrix/templates is never
+// even considered. Ambiguity (multiple site templates) can therefore only
+// ever happen *within* one of these tiers, never by mixing the two.
 const TEMPLATE_ROOTS = ["local", "bitrix"] as const;
 
 function effectiveTemplateFolder(templateName: string): string {
@@ -14,9 +22,10 @@ function effectiveTemplateFolder(templateName: string): string {
 }
 
 // Defense in depth: the parser already restricts the template-name charset
-// so it can't contain path separators or "..", but resolveTemplateDir is a
-// public function in this module and shouldn't rely solely on callers
-// upstream having sanitized their input before it reaches path.join.
+// so it can't contain path separators or "..", but this module shouldn't
+// rely solely on callers upstream having sanitized their input before it
+// reaches path.join. Also applied to the user-configured siteTemplate
+// setting, which is just as capable of reaching path.join.
 function isSafeTemplateFolder(segment: string): boolean {
   return (
     segment !== "." &&
@@ -32,9 +41,9 @@ function isSafeTemplateFolder(segment: string): boolean {
  * `bitrixTools.siteTemplate` setting) only that one is checked — this is
  * the escape hatch for multi-site installs, where the real site template
  * is chosen at runtime from the database and can't be determined
- * statically. Without it, every site template folder found on disk is
- * tried, in alphabetical order, which is a reasonable guess for the
- * common single-site case.
+ * statically. Without it, every site template folder found on disk at the
+ * winning tier is checked; if more than one has a match, the result is
+ * reported as ambiguous instead of guessing.
  */
 async function findViaSiteTemplates(
   siteRoot: string,
@@ -44,19 +53,17 @@ async function findViaSiteTemplates(
   siteTemplate: string | null,
   exists: PathExists,
   listDirectories: ListDirectories
-): Promise<string | null> {
+): Promise<TemplateResolution> {
   for (const templateRoot of TEMPLATE_ROOTS) {
     const templatesDir = path.join(siteRoot, templateRoot, "templates");
-    // A configured bitrixTools.siteTemplate value comes from the user's own
-    // settings.json, but it still ends up in path.join below — guard it the
-    // same way as everything else rather than trusting it implicitly.
     const siteTemplateNames =
       siteTemplate && isSafeTemplateFolder(siteTemplate)
         ? [siteTemplate]
         : [...(await listDirectories(templatesDir))].sort();
 
+    const matches: TemplateCandidate[] = [];
     for (const siteTemplateName of siteTemplateNames) {
-      const candidate = path.join(
+      const candidatePath = path.join(
         templatesDir,
         siteTemplateName,
         "components",
@@ -64,18 +71,28 @@ async function findViaSiteTemplates(
         name,
         templateFolder
       );
-      if (await exists(candidate)) {
-        return candidate;
+      if (await exists(candidatePath)) {
+        matches.push({ siteTemplateName, path: candidatePath });
       }
     }
+
+    if (matches.length === 1) {
+      return { kind: "resolved", path: matches[0]!.path };
+    }
+    if (matches.length > 1) {
+      return { kind: "ambiguous", candidates: matches };
+    }
+    // Zero matches at this tier: fall through to the next templateRoot.
   }
-  return null;
+
+  return { kind: "none" };
 }
 
 /**
  * Fallback when no site-template override exists: the template bundled
  * directly with the component itself, e.g.
- * local/components/{ns}/{name}/templates/{template}.
+ * local/components/{ns}/{name}/templates/{template}. Never ambiguous —
+ * there's exactly one such location per components root.
  */
 async function findViaBundledTemplates(
   siteRoot: string,
@@ -101,6 +118,11 @@ async function findViaBundledTemplates(
   return null;
 }
 
+async function toEntryFile(dir: string, exists: PathExists): Promise<string> {
+  const entryFile = path.join(dir, "template.php");
+  return (await exists(entryFile)) ? entryFile : dir;
+}
+
 export async function resolveTemplateDir(
   namespace: string,
   name: string,
@@ -109,14 +131,14 @@ export async function resolveTemplateDir(
   siteTemplate: string | null,
   exists: PathExists,
   listDirectories: ListDirectories
-): Promise<string | null> {
+): Promise<TemplateResolution> {
   const templateFolder = effectiveTemplateFolder(templateName);
   if (
     !isSafeTemplateFolder(namespace) ||
     !isSafeTemplateFolder(name) ||
     !isSafeTemplateFolder(templateFolder)
   ) {
-    return null;
+    return { kind: "none" };
   }
 
   const viaSiteTemplate = await findViaSiteTemplates(
@@ -128,11 +150,18 @@ export async function resolveTemplateDir(
     exists,
     listDirectories
   );
-  if (viaSiteTemplate) {
+  if (viaSiteTemplate.kind !== "none") {
     return viaSiteTemplate;
   }
 
-  return findViaBundledTemplates(siteRoot, namespace, name, templateFolder, exists);
+  const bundledPath = await findViaBundledTemplates(
+    siteRoot,
+    namespace,
+    name,
+    templateFolder,
+    exists
+  );
+  return bundledPath ? { kind: "resolved", path: bundledPath } : { kind: "none" };
 }
 
 export async function resolveTemplateFile(
@@ -143,8 +172,8 @@ export async function resolveTemplateFile(
   siteTemplate: string | null,
   exists: PathExists,
   listDirectories: ListDirectories
-): Promise<string | null> {
-  const dir = await resolveTemplateDir(
+): Promise<TemplateResolution> {
+  const dirResolution = await resolveTemplateDir(
     namespace,
     name,
     templateName,
@@ -153,10 +182,20 @@ export async function resolveTemplateFile(
     exists,
     listDirectories
   );
-  if (!dir) {
-    return null;
+
+  if (dirResolution.kind === "resolved") {
+    return { kind: "resolved", path: await toEntryFile(dirResolution.path, exists) };
   }
 
-  const entryFile = path.join(dir, "template.php");
-  return (await exists(entryFile)) ? entryFile : dir;
+  if (dirResolution.kind === "ambiguous") {
+    const candidates = await Promise.all(
+      dirResolution.candidates.map(async (candidate) => ({
+        siteTemplateName: candidate.siteTemplateName,
+        path: await toEntryFile(candidate.path, exists),
+      }))
+    );
+    return { kind: "ambiguous", candidates };
+  }
+
+  return { kind: "none" };
 }

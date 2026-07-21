@@ -43,7 +43,7 @@ test("resolves via the only site template found on disk", async () => {
     listDirectories
   );
 
-  assert.equal(result, templateDir);
+  assert.deepEqual(result, { kind: "resolved", path: templateDir });
 });
 
 test("prefers the configured bitrixTools.siteTemplate when multiple exist", async () => {
@@ -82,11 +82,11 @@ test("prefers the configured bitrixTools.siteTemplate when multiple exist", asyn
     listDirectories
   );
 
-  assert.equal(result, wantedDir);
+  assert.deepEqual(result, { kind: "resolved", path: wantedDir });
 });
 
-test("without a configured setting, picks the first site template alphabetically", async () => {
-  const aDir = path.join(
+test("reports ambiguous with every matching candidate when multiple site templates match and no setting is configured", async () => {
+  const alphaDir = path.join(
     ROOT,
     "local",
     "templates",
@@ -96,7 +96,7 @@ test("without a configured setting, picks the first site template alphabetically
     "catalog",
     "catalog"
   );
-  const bDir = path.join(
+  const betaDir = path.join(
     ROOT,
     "local",
     "templates",
@@ -106,7 +106,7 @@ test("without a configured setting, picks the first site template alphabetically
     "catalog",
     "catalog"
   );
-  const exists = fakeFs([aDir, bDir]);
+  const exists = fakeFs([alphaDir, betaDir]);
   const listDirectories = fakeListDirectories({
     [path.join(ROOT, "local", "templates")]: ["beta", "alpha"],
   });
@@ -121,7 +121,95 @@ test("without a configured setting, picks the first site template alphabetically
     listDirectories
   );
 
-  assert.equal(result, aDir);
+  assert.deepEqual(result, {
+    kind: "ambiguous",
+    candidates: [
+      { siteTemplateName: "alpha", path: alphaDir },
+      { siteTemplateName: "beta", path: betaDir },
+    ],
+  });
+});
+
+test("does not fall through to bitrix/templates when local/templates is ambiguous", async () => {
+  const alphaDir = path.join(
+    ROOT,
+    "local",
+    "templates",
+    "alpha",
+    "components",
+    "bitrix",
+    "catalog",
+    "catalog"
+  );
+  const betaDir = path.join(
+    ROOT,
+    "local",
+    "templates",
+    "beta",
+    "components",
+    "bitrix",
+    "catalog",
+    "catalog"
+  );
+  const bitrixDir = path.join(
+    ROOT,
+    "bitrix",
+    "templates",
+    "gamma",
+    "components",
+    "bitrix",
+    "catalog",
+    "catalog"
+  );
+  const exists = fakeFs([alphaDir, betaDir, bitrixDir]);
+  const listDirectories = fakeListDirectories({
+    [path.join(ROOT, "local", "templates")]: ["beta", "alpha"],
+    [path.join(ROOT, "bitrix", "templates")]: ["gamma"],
+  });
+
+  const result = await resolveTemplateDir(
+    "bitrix",
+    "catalog",
+    "catalog",
+    ROOT,
+    null,
+    exists,
+    listDirectories
+  );
+
+  assert.equal(result.kind, "ambiguous");
+  if (result.kind === "ambiguous") {
+    assert.equal(result.candidates.length, 2);
+  }
+});
+
+test("without a configured setting, resolves directly when only one site template matches", async () => {
+  const aDir = path.join(
+    ROOT,
+    "local",
+    "templates",
+    "alpha",
+    "components",
+    "bitrix",
+    "catalog",
+    "catalog"
+  );
+  const exists = fakeFs([aDir]);
+  const listDirectories = fakeListDirectories({
+    [path.join(ROOT, "local", "templates")]: ["beta", "alpha"],
+  });
+
+  const result = await resolveTemplateDir(
+    "bitrix",
+    "catalog",
+    "catalog",
+    ROOT,
+    null,
+    exists,
+    listDirectories
+  );
+
+  assert.deepEqual(result, { kind: "resolved", path: aDir });
 });
 
 test("falls back to the component's own bundled template when no site template has it", async () => {
@@ -147,7 +235,7 @@ test("falls back to the component's own bundled template when no site template h
     listDirectories
   );
 
-  assert.equal(result, bundledDir);
+  assert.deepEqual(result, { kind: "resolved", path: bundledDir });
 });
 
 test("treats an empty template name as the .default folder", async () => {
@@ -173,7 +261,24 @@ test("treats an empty template name as the .default folder", async () => {
     listDirectories
   );
 
-  assert.equal(result, defaultDir);
+  assert.deepEqual(result, { kind: "resolved", path: defaultDir });
+});
+
+test("returns none when the template exists nowhere", async () => {
+  const exists = fakeFs([]);
+  const listDirectories = fakeListDirectories({});
+
+  const result = await resolveTemplateDir(
+    "bitrix",
+    "catalog",
+    "catalog",
+    ROOT,
+    null,
+    exists,
+    listDirectories
+  );
+
+  assert.deepEqual(result, { kind: "none" });
 });
 
 test("refuses to resolve a template name containing path separators, even if it bypasses the parser", async () => {
@@ -194,7 +299,7 @@ test("refuses to resolve a template name containing path separators, even if it 
     listDirectories
   );
 
-  assert.equal(result, null);
+  assert.deepEqual(result, { kind: "none" });
 });
 
 test("ignores a configured siteTemplate that contains path separators and falls back to auto-detect", async () => {
@@ -223,24 +328,7 @@ test("ignores a configured siteTemplate that contains path separators and falls 
     listDirectories
   );
 
-  assert.equal(result, validDir);
-});
-
-test("returns null when the template exists nowhere", async () => {
-  const exists = fakeFs([]);
-  const listDirectories = fakeListDirectories({});
-
-  const result = await resolveTemplateDir(
-    "bitrix",
-    "catalog",
-    "catalog",
-    ROOT,
-    null,
-    exists,
-    listDirectories
-  );
-
-  assert.equal(result, null);
+  assert.deepEqual(result, { kind: "resolved", path: validDir });
 });
 
 test("resolveTemplateFile points at template.php when present", async () => {
@@ -267,7 +355,7 @@ test("resolveTemplateFile points at template.php when present", async () => {
     listDirectories
   );
 
-  assert.equal(result, entryFile);
+  assert.deepEqual(result, { kind: "resolved", path: entryFile });
 });
 
 test("resolveTemplateFile falls back to the directory when template.php is missing", async () => {
@@ -293,5 +381,51 @@ test("resolveTemplateFile falls back to the directory when template.php is missi
     listDirectories
   );
 
-  assert.equal(result, templateDir);
+  assert.deepEqual(result, { kind: "resolved", path: templateDir });
+});
+
+test("resolveTemplateFile resolves template.php per candidate when ambiguous", async () => {
+  const alphaDir = path.join(
+    ROOT,
+    "local",
+    "templates",
+    "alpha",
+    "components",
+    "bitrix",
+    "catalog",
+    "catalog"
+  );
+  const alphaEntry = path.join(alphaDir, "template.php");
+  const betaDir = path.join(
+    ROOT,
+    "local",
+    "templates",
+    "beta",
+    "components",
+    "bitrix",
+    "catalog",
+    "catalog"
+  );
+  const exists = fakeFs([alphaDir, alphaEntry, betaDir]);
+  const listDirectories = fakeListDirectories({
+    [path.join(ROOT, "local", "templates")]: ["beta", "alpha"],
+  });
+
+  const result = await resolveTemplateFile(
+    "bitrix",
+    "catalog",
+    "catalog",
+    ROOT,
+    null,
+    exists,
+    listDirectories
+  );
+
+  assert.deepEqual(result, {
+    kind: "ambiguous",
+    candidates: [
+      { siteTemplateName: "alpha", path: alphaEntry },
+      { siteTemplateName: "beta", path: betaDir },
+    ],
+  });
 });

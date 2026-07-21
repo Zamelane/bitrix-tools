@@ -1,6 +1,7 @@
 import * as path from "node:path";
 import * as vscode from "vscode";
 import { ComponentService } from "../../services/component/ComponentService";
+import { CHOOSE_TEMPLATE_COMMAND_ID } from "../commands/chooseTemplateCommand";
 
 export class ComponentLinkProvider implements vscode.DocumentLinkProvider {
   constructor(private readonly componentService: ComponentService) {}
@@ -21,14 +22,24 @@ export class ComponentLinkProvider implements vscode.DocumentLinkProvider {
       siteTemplate
     );
 
-    return links.map(({ start, end, targetPath, tooltip }) => {
+    return links.map((link) => {
       const range = new vscode.Range(
-        document.positionAt(start),
-        document.positionAt(end)
+        document.positionAt(link.start),
+        document.positionAt(link.end)
       );
-      const link = new vscode.DocumentLink(range, vscode.Uri.file(targetPath));
-      link.tooltip = tooltip;
-      return link;
+
+      const target =
+        link.kind === "direct"
+          ? vscode.Uri.file(link.targetPath)
+          : vscode.Uri.parse(
+              `command:${CHOOSE_TEMPLATE_COMMAND_ID}?${encodeURIComponent(
+                JSON.stringify([link.candidates])
+              )}`
+            );
+
+      const documentLink = new vscode.DocumentLink(range, target);
+      documentLink.tooltip = link.tooltip;
+      return documentLink;
     });
   }
 

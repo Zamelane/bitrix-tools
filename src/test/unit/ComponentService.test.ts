@@ -50,8 +50,14 @@ test("resolves both the component and its template, skipping calls that resolve 
   const links = await service.findLinks(php, root, null);
 
   assert.equal(links.length, 2);
-  assert.equal(links[0].targetPath, catalogEntry);
-  assert.equal(links[1].targetPath, templateEntry);
+  assert.equal(links[0].kind, "direct");
+  assert.equal(links[1].kind, "direct");
+  if (links[0].kind === "direct") {
+    assert.equal(links[0].targetPath, catalogEntry);
+  }
+  if (links[1].kind === "direct") {
+    assert.equal(links[1].targetPath, templateEntry);
+  }
 });
 
 test("returns an empty list when the document isn't inside a Bitrix site", async () => {
@@ -93,7 +99,10 @@ test("finds the site root when the docroot is nested below the document", async 
   );
 
   assert.equal(links.length, 1);
-  assert.equal(links[0].targetPath, catalogEntry);
+  assert.equal(links[0].kind, "direct");
+  if (links[0].kind === "direct") {
+    assert.equal(links[0].targetPath, catalogEntry);
+  }
 });
 
 test("respects the configured siteTemplate when resolving the template link", async () => {
@@ -132,7 +141,55 @@ test("respects the configured siteTemplate when resolving the template link", as
   );
 
   assert.equal(links.length, 1);
-  assert.equal(links[0].targetPath, wantedTemplate);
+  assert.equal(links[0].kind, "direct");
+  if (links[0].kind === "direct") {
+    assert.equal(links[0].targetPath, wantedTemplate);
+  }
+});
+
+test("produces an ambiguous link with all candidates when multiple site templates match and none is configured", async () => {
+  const root = "/site";
+  const alphaTemplate = path.join(
+    root,
+    "local",
+    "templates",
+    "alpha",
+    "components",
+    "bitrix",
+    "catalog",
+    "catalog"
+  );
+  const betaTemplate = path.join(
+    root,
+    "local",
+    "templates",
+    "beta",
+    "components",
+    "bitrix",
+    "catalog",
+    "catalog"
+  );
+  const service = new ComponentService(
+    fakeFs([path.join(root, "bitrix", "modules"), alphaTemplate, betaTemplate]),
+    fakeListDirectories({
+      [path.join(root, "local", "templates")]: ["beta", "alpha"],
+    })
+  );
+
+  const links = await service.findLinks(
+    `IncludeComponent("bitrix:catalog", "catalog", []);`,
+    root,
+    null
+  );
+
+  const templateLink = links.find((link) => link.kind === "ambiguous");
+  assert.ok(templateLink, "expected an ambiguous template link");
+  if (templateLink?.kind === "ambiguous") {
+    assert.deepEqual(templateLink.candidates, [
+      { label: "alpha", targetPath: alphaTemplate },
+      { label: "beta", targetPath: betaTemplate },
+    ]);
+  }
 });
 
 test("falls back to class.php when the component has no component.php", async () => {
@@ -156,6 +213,8 @@ test("falls back to class.php when the component has no component.php", async ()
     null
   );
 
-  const componentLink = links.find((link) => link.targetPath === classFile);
+  const componentLink = links.find(
+    (link) => link.kind === "direct" && link.targetPath === classFile
+  );
   assert.ok(componentLink, "expected a link resolving to class.php");
 });
