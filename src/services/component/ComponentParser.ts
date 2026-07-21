@@ -1,9 +1,4 @@
-export interface ComponentReference {
-  namespace: string;
-  name: string;
-  start: number;
-  end: number;
-}
+import { ComponentReference } from "../../core/types/component";
 
 const INCLUDE_COMPONENT_RE =
   /IncludeComponent\s*\(\s*(["'])([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+)\1/g;

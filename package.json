@@ -20,7 +20,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -w -p ./",
     "pretest": "npm run compile",
-    "test": "node --test out/*.test.js"
+    "test": "node --test 'out/test/unit/**/*.test.js'"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

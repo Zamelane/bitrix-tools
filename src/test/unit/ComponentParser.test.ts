@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { findComponentReferences } from "./componentParser";
+import { findComponentReferences } from "../../services/component/ComponentParser";
 
 test("finds a single IncludeComponent call", () => {
   const php = `$APPLICATION->IncludeComponent(\n  "bitrix:catalog",\n  "catalog",\n  []\n);`;

@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import * as path from "node:path";
-import { resolveComponentDir, resolveComponentFile } from "./componentResolver";
+import {
+  resolveComponentDir,
+  resolveComponentFile,
+} from "../../services/component/ComponentResolver";
 
 function fakeFs(existingPaths: string[]) {
   const set = new Set(existingPaths);

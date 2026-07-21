@@ -1,6 +1,5 @@
 import * as path from "node:path";
-
-export type PathExists = (candidatePath: string) => Promise<boolean>;
+import { PathExists } from "./types";
 
 const COMPONENT_ROOTS = ["local", "bitrix"] as const;
 
