@@ -1,5 +1,5 @@
 import { findComponentReferences } from "./ComponentParser";
-import { resolveComponentFile } from "./ComponentResolver";
+import { findSiteRoot, resolveComponentFile } from "./ComponentResolver";
 import { PathExists, ResolvedComponentLink } from "./types";
 
 /**
@@ -11,8 +11,13 @@ export class ComponentService {
 
   async findComponentLinks(
     text: string,
-    workspaceRoots: readonly string[]
+    documentDir: string
   ): Promise<ResolvedComponentLink[]> {
+    const siteRoot = await findSiteRoot(documentDir, this.pathExists);
+    if (!siteRoot) {
+      return [];
+    }
+
     const references = findComponentReferences(text);
     const links: ResolvedComponentLink[] = [];
 
@@ -20,7 +25,7 @@ export class ComponentService {
       const targetPath = await resolveComponentFile(
         reference.namespace,
         reference.name,
-        workspaceRoots,
+        siteRoot,
         this.pathExists
       );
       if (targetPath) {

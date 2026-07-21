@@ -1,3 +1,4 @@
+import * as path from "node:path";
 import * as vscode from "vscode";
 import { ComponentService } from "../../services/component/ComponentService";
 
@@ -7,16 +8,14 @@ export class ComponentLinkProvider implements vscode.DocumentLinkProvider {
   async provideDocumentLinks(
     document: vscode.TextDocument
   ): Promise<vscode.DocumentLink[]> {
-    const workspaceRoots = (vscode.workspace.workspaceFolders ?? []).map(
-      (folder) => folder.uri.fsPath
-    );
-    if (workspaceRoots.length === 0) {
+    if (document.uri.scheme !== "file") {
       return [];
     }
 
+    const documentDir = path.dirname(document.uri.fsPath);
     const links = await this.componentService.findComponentLinks(
       document.getText(),
-      workspaceRoots
+      documentDir
     );
 
     return links.map(({ reference, targetPath }) => {
