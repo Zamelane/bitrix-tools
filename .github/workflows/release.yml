@@ -15,6 +15,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      # Job-level env so it can be read via env.VSCE_PAT in a step's `if:`
+      # condition below — `secrets` itself isn't accessible there.
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,8 +72,5 @@ jobs:
 
       - name: Publish to VS Code Marketplace
         # Only attempted if a Marketplace token secret has been configured.
-        # See the setup notes in this file's accompanying documentation.
-        if: steps.version.outputs.found == 'true' && secrets.VSCE_PAT != ''
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        if: steps.version.outputs.found == 'true' && env.VSCE_PAT != ''
         run: npx @vscode/vsce publish --no-dependencies -p "$VSCE_PAT"
