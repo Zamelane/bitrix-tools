@@ -3,8 +3,7 @@
   "displayName": "Bitrix Tools",
   "description": "Navigation and helpers for 1C-Bitrix development",
   "version": "0.0.1",
-  "publisher": "local",
-  "private": true,
+  "publisher": "zamelane",
   "engines": {
     "vscode": "^1.90.0"
   },
