@@ -2,6 +2,8 @@
 
 Ускорьте разработку на 1С-Битрикс в VS Code. Расширение добавляет умную навигацию по компонентам и упрощает рутинные задачи разработчика.
 
+![visitors](https://visitor-badge.laobi.icu/badge?page_id=zamelane.bitrix-tools&left_text=visitors&logo=github)
+
 ## 🚀 Возможности
 
 - **Быстрая навигация**: переход к шаблонам компонентов прямо из кода (`IncludeComponent`).
