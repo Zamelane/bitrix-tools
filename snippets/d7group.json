@@ -1,0 +1,16 @@
+{
+    "D7Group.getList": {
+        "prefix": ["d7Grouplist","GetListGroup"],
+        "body": [
+            "\\$rdbGroups = \\\\Bitrix\\\\Main\\\\GroupTable::getList(array(",
+            "\t'select' => array('NAME'),",
+            "\t'filter' => array('ID' => '${1:id}')",
+            "));",
+            "",
+            "while (\\$dctGroup = \\$rdbGroups->fetch()) {",
+            "\tvar_export(\\$dctGroup);",
+            "}"
+        ],
+        "description": ""
+    }
+}

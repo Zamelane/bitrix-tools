@@ -1,0 +1,63 @@
+{
+    "CIBlockProperty.Add": {
+        "prefix": "CIBlockPropAdd",
+        "body": [
+            "\\$ibp = new \\\\CIBlockProperty;",
+            "\\$dctFields = [",
+            "\t\t'ACTIVE'    => 'Y',",
+            "\t\t'NAME'      => '${1:name}',",
+            "\t];",
+            "if(!\\$Id = \\$ibp->Add(\\$dctFields)) {",
+            "\techo 'Error:' . \\$ibp->LAST_ERROR;",
+            "}"
+        ],
+        "description": "Добавляет новое свойство."
+    },
+    "CIBlockProperty.Delete": {
+        "prefix": "CIBlockPropDel",
+        "body": [
+            "\\\\CIBlockProperty::Delete('${1:PropertyID}');"
+        ],
+        "description": "Удаляет свойства."
+    },
+    "CIBlockProperty.GetByID": {
+        "prefix": "CIBlockPropID",
+        "body": [
+            "\\$rdb = CIBlockProperty::GetByID('${1:PropertyID}');",
+            "if(\\$dctProp = \\$rdb->GetNext()) {",
+            "\t//body ...",
+            "}"
+        ],
+        "description": "Возвращает свойство по его ID."
+    },
+    "CIBlockProperty.GetList": {
+        "prefix": ["CIBlockPropertiesList","CIBlockPropertyList","CIBlockPropList"],
+        "body": [
+            "\\$rdbProperties = CIBlockProperty::GetList(",
+            "\t\t['SORT' => 'ASC'],",
+            "\t\t[",
+            "\t\t\t\t'ACTIVE'    => 'Y',",
+            "\t\t\t\t'IBLOCK_ID' => '${1:IBLOCK_ID}',",
+            "\t\t\t]",
+            "\t);",
+            "while(\\$dctProp = \\$rdbProperties->GetNext()) {",
+            "\tvar_export(\\$dctProp);",
+            "}"
+        ],
+        "description": "Возвращает список свойств по фильтру."
+    },
+    "CIBlockProperty.Update": {
+        "prefix": "CIBlockPropUpdate",
+        "body": [
+            "\\$ibp = new CIBlockProperty;",
+            "\\$dctFields = [",
+            "\t\t'ACTIVE'    => 'Y',",
+            "\t\t//...",
+            "\t];",
+            "if(!\\$ibp->Update('${1:id}', \\$dctFields)) {",
+            "\techo \\$ibp->LAST_ERROR;",
+            "}"
+        ],
+        "description": "Изменяет параметры свойства."
+    }
+}

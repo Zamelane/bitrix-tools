@@ -1,0 +1,84 @@
+{
+    "Main.Ui.Extension.load": {
+        "prefix": ["uiExtensionLoad","uiExtensionsLoad","IncludeExtension","LoadExtension"],
+        "body": [
+            "\\\\Bitrix\\\\Main\\\\UI\\\\Extension::load([",
+            "\t\t'${1:extesioname}'",
+            "\t]);"
+        ],
+        "description": "Загружает js расширение"
+    },
+    
+    "Main.Application.getDocumentRoot": {
+        "prefix": ["d7Documentroot","document_root","$_SERVER['DOCUMENT_ROOT']"],
+        "body": [
+            "\\$DocumentRoot = \\\\Bitrix\\\\Main\\\\Application::getDocumentRoot();"
+        ],
+        "description": "Статический метод возвращает document root сервера."
+    },
+    
+    "Main.Loader.includeModule": {
+        "prefix": ["CModuleInclude","d7LoadModule","d7IncludeModule","LoadModule","IncludeModule"],
+        "body": [
+            "\\\\Bitrix\\\\Main\\\\Loader::includeModule('${1:moduleName}');"
+        ],
+        "description": "Проверяет установлен ли модуль и если установлен, то подключает его."
+    },
+    "Main.Loader.registerAutoLoadClasses": {
+        "prefix": ["cmoduleaddautoload","autoload","d7Registerautoloadclasses"],
+        "body": [
+            "\\\\Bitrix\\\\Main\\\\Loader::registerAutoLoadClasses(",
+            "\tnull,",
+            "\t[",
+            "\t\t\t//'\\\\Mobile\\\\MobileDetect' => '/local/lib/MobileDetect.php',",
+            "\t\t\t'${1:classname}' => '${2:pathclass}',",
+            "\t\t]",
+            "\t);"
+        ],
+        "description": "Статический метод регистрирует классы для автозагрузки."
+    },
+    "Main.Loader.getDocumentRoot": {
+        "prefix": ["d7DocumentRoot","document_root","$_SERVER['DOCUMENT_ROOT']"],
+        "body": [
+            "\\\\Bitrix\\\\Main\\\\Application::getDocumentRoot();"
+        ],
+        "description": "Статический метод возвращает document root."
+    },
+
+    "Main.IO.File": {
+        "prefix": ["d7File","d7ExistsFile","d7IOFile","File","ExistsFile"],
+        "body": [
+            "//https://dev.1c-bitrix.ru/api_d7/bitrix/main/io/file/index.php",
+            "\\$file = new \\\\Bitrix\\\\Main\\\\IO\\\\File(\\\\Bitrix\\\\Main\\\\Application::getDocumentRoot().'/file.txt');",
+            "if (\\$file->isExists()) {",
+            "\t\\$Name = \\$file->getName(); // Имя файла",
+            "\t\\$Ext = \\$file->getExtension(); // Расширение файла",
+            "\t\\$Size = \\$file->getSize(); // Размер файла в байтах",
+            "\t\\$ContentType = \\$file->getContentType(); // Content-type",
+            "",
+            "\\$Content = \\$file->getContents(); // Получить содержание файла",
+            "",
+            "\\$file->putContents('data', \\\\Bitrix\\\\Main\\\\IO\\\\File::APPEND); // Дописать содержимое в конец файла",
+            "//\\$file->delete();",
+            "}"
+        ],
+        "description": "Действия свфайлами"
+    },
+    "Main.IO.Directory": {
+        "prefix": ["d7Directory","d7Exists","d7Iodirectory","перебрать файлов в папке"],
+        "body": [
+            "//https://dev.1c-bitrix.ru/api_d7/bitrix/main/io/file/index.php",
+            "\\$directory = new \\\\Bitrix\\\\Main\\\\IO\\\\Directory($Path);",
+            "foreach (\\$directory->getChildren() as \\$subDir) {",
+            "\tif (\\$subDir->isDirectory()) {",
+            "\t\tforeach (\\$subDir->getChildren() as \\$file) {",
+            "\t\t\tif (\\$file->IsExists() && !\\$file->isDirectory()) {",
+            "\t\t\t\t",
+            "\t\t\t}",
+            "\t\t}",
+            "\t}",
+            "}"
+        ],
+        "description": "Перебор файлов/папок в папке"
+    }
+}

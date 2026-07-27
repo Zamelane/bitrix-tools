@@ -1,0 +1,210 @@
+{
+    "APPLICATION.ShowMeta": {
+        "prefix": ["APPLImeta","ShowMeta"],
+        "body": [
+            "\\$APPLICATION->ShowMeta('${1:metaName}');"
+        ],
+        "description": "Отображает свойство страницы в виде мета-тега."
+    },
+    "APPLICATION.ShowTitle": {
+        "prefix": ["APPLItitle","ShowTitle"],
+        "body": [
+            "\\$APPLICATION->ShowTitle();"
+        ],
+        "description": "Отображает заголовок страницы."
+    },
+    "APPLICATION.ShowHead": {
+        "prefix": ["APPLIhead","ShowHead"],
+        "body": [
+            "\\$APPLICATION->ShowHead();"
+        ],
+        "description": "Метод предназначена для вывода в шаблоне сайта основных полей тега <head>."
+    },
+    "APPLICATION.ShowHeadStrings": {
+        "prefix": ["APPLIheadStrings","ShowHeadStrings"],
+        "body": [
+            "\\$APPLICATION->ShowHeadStrings();"
+        ],
+        "description": "Отображает специальные стили, JavaScript либо произвольный html-код."
+    },
+    "APPLICATION.ShowPanel": {
+        "prefix": ["APPLIpanel","ShowPanel"],
+        "body": [
+            "\\$APPLICATION->ShowPanel();"
+        ],
+        "description": "Отображает HTML представляющий из себя панель управления публичной частью."
+    },
+    "APPLICATION.ShowCSS": {
+        "prefix": ["APPLIcss","ShowCSS"],
+        "body": [
+            "\\$APPLICATION->ShowCSS();"
+        ],
+        "description": "Отображает HTML для подключения CSS на странице."
+    },
+    "APPLICATION.ShowNavChain": {
+        "prefix": ["APPLInavChain","ShowNavChain"],
+        "body": [
+            "// https://dev.1c-bitrix.ru/api_help/main/reference/cmain/shownavchain.php",
+            "\\$APPLICATION->ShowNavChain();"
+        ],
+        "description": "Отображает HTML с навигационной цепочкой."
+    },
+    "APPLICATION.AddChainItem": {
+        "prefix": ["APPLIaddChainItem","AddChainItem","AddNavChain"],
+        "body": [
+            "/*",
+            "https://dev.1c-bitrix.ru/api_help/main/reference/cmain/addchainitem.php",
+            "Если значение третьего параметра - true, то в title будут произведены следующие замены:",
+            "&amp; заменяется на &",
+            "&quot; заменяется на \"",
+            "&#039; заменяется на '",
+            "&lt; заменяется на <",
+            "&gt; заменяется на >",
+            "",
+            "по умолчанию true",
+            "*/",
+            "\\$APPLICATION->AddChainItem('${1:Имя}', '${2:Ссылка}', true);"
+        ],
+        "description": "Добавляет пункт в навигационную цепочку"
+    },
+
+    "APPLICATION.GetNavChain": {
+        "prefix": "APPLIGetNavChain",
+        "body": [
+            "// https://dev.1c-bitrix.ru/api_help/iblock/classes/ciblocksection/getnavchain.php",
+            "\\$APPLICATION->GetNavChain(false,${1:SECTION_ID});"
+        ],
+        "description": "Возвращает  путь по дереву от корня до раздела SECTION_ID."
+    },
+    
+    "APPLICATION.ShowProperty": {
+        "prefix": ["APPLIproperty","ShowProperty"],
+        "body": [
+            "\\$APPLICATION->ShowProperty('${1:property_id}');"
+        ],
+        "description": "Отображает свойство страницы, учитывая свойства раздела."
+    },
+    "APPLICATION.GetTitle": {
+        "prefix": "APPLIGetTitle",
+        "body": [
+            "\\$APPLICATION->GetTitle('${1:property_name}');"
+        ],
+        "description": "Возвращает заголовок страницы."
+    },
+    "APPLICATION.GetCSS": {
+        "prefix": "APPLIGetCSS",
+        "body": [
+            "\\$APPLICATION->GetCSS('${1:external}');"
+        ],
+        "description": "Возвращает HTML для подключения CSS на странице."
+    },
+    "APPLICATION.GetCurUri": {
+        "prefix": "APPLIGetCurUri",
+        "body": [
+            "\\$APPLICATION->GetCurUri('${1:add_params}', '${2:get_index_page}')"
+        ],
+        "description": "Возвращает адрес текущей страницы с параметрами."
+    },
+    "APPLICATION.GetCurPage": {
+        "prefix": "APPLIGetCurPage",
+        "body": [
+            "\\$APPLICATION->GetCurPage(${1|true,false|})"
+        ],
+        "description": "Возвращает адрес текущей страницы без параметров."
+    },
+    "APPLICATION.GetCurPageParam": {
+        "prefix": "APPLIGetCurPageParam",
+        "body": [
+            "\\$APPLICATION->GetCurPageParam('${1:add_params}', array(${2:remove_params}), ${3|true,false|});"
+        ],
+        "description": "Возвращает URL текущей страницы c добавленными новыми и(или) удаленными параметрами."
+    },
+    "APPLICATION.GetCurDir": {
+        "prefix": "APPLIGetCurDir",
+        "body": [
+            "\\$APPLICATION->GetCurDir()"
+        ],
+        "description": "Возвращает раздел текущей страницы."
+    },
+    "APPLICATION.GetProperty": {
+        "prefix": "APPLIGetProperty",
+        "body": [
+            "\\$APPLICATION->GetProperty('${1:property_id}')"
+        ],
+        "description": "Возвращает свойство страницы, учитывая свойства раздела."
+    },
+    "APPLICATION.GetPageProperty": {
+        "prefix": "APPLIGetPageProperty",
+        "body": [
+            "\\$APPLICATION->GetPageProperty('${1:property_id}')"
+        ],
+        "description": "Возвращает свойство страницы."
+    },
+    "APPLICATION.GetDirProperty": {
+        "prefix": "APPLIGetDirProperty",
+        "body": [
+            "\\$APPLICATION->GetDirProperty('${1:property_id}')"
+        ],
+        "description": "Возвращает свойство раздела."
+    },
+    "APPLICATION.GetPagePropertyList": {
+        "prefix": "APPLIGetPagePropertyList",
+        "body": [
+            "\\$APPLICATION->GetPagePropertyList()"
+        ],
+        "description": "Возвращает массив всех свойств страницы."
+    },
+    "APPLICATION.GetDirPropertyList": {
+        "prefix": "APPLIGetDirPropertyList",
+        "body": [
+            "\\$APPLICATION->GetDirPropertyList()"
+        ],
+        "description": "Возвращает массив всех свойств раздела. Необязательный первый параметр позволяет получить свойство любого каталога."
+    },
+    "APPLICATION.SetPageProperty": {
+        "prefix": "APPLISetPageProperty",
+        "body": [
+            "\\$APPLICATION->SetPageProperty('${1:property_id}', '${2:property_value}');"
+        ],
+        "description": "Устанавливает свойство страницы."
+    },
+    "APPLICATION.SetDirProperty": {
+        "prefix": "APPLISetDirProperty",
+        "body": [
+            "\\$APPLICATION->SetDirProperty('${1:property_id}', '${2:property_value}');"
+        ],
+        "description": "Устанавливает свойство раздела. Необязательный третий параметр позволяет получить свойства любого каталога."
+    },
+    "APPLICATION.main.include": {
+        "prefix": ["APPLIMainInc","include"],
+        "body": [
+            "\\$APPLICATION->IncludeComponent(",
+            "\t'bitrix:main.include',",
+            "\t'',",
+            "\t[",
+            "\t\t'AREA_FILE_SHOW'    => '${1|sect,page,file|}',",
+            "\t\t'AREA_FILE_SUFFIX'  => 'inc',",
+            "\t\t'EDIT_TEMPLATE'     => '',",
+            "\t\t'PATH'              => '/include/${2:file.php}'",
+            "\t]",
+            ");",
+            "$0"
+        ],
+        "description": "Подключение файла через компонент."
+    },
+    "APPLICATION.IncludeFile": {
+        "prefix": ["APPLIIncFile","IncludeFile"],
+        "body": [
+            "\\$APPLICATION->IncludeFile(",
+            "\t'${1:file.php}',",
+            "\t[],",
+            "\t[",
+            "\t\t'MODE'      => '${2|html,text,php|}',", 
+            "\t\t'NAME'      => '${3:name}',",
+            "\t\t'TEMPLATE'  => 'page_inc.php'",
+            "\t]",
+            ");"
+        ],
+        "description": "Подключение файла."
+    }
+}

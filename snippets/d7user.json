@@ -1,0 +1,16 @@
+{
+    "D7User": {
+        "prefix": "d7User",
+        "body": [
+            "\\$rdbUsers = \\\\Bitrix\\\\Main\\\\UserTable::getList(array(",
+            "\t'select' => array('LOGIN'),",
+            "\t'filter' => array('ID' => '${1:id}')",
+            "));",
+            "",
+            "while (\\$dctUser = \\$rdbUsers->fetch()) {",
+            "\tvar_export(\\$dctUser);",
+            "}"
+        ],
+        "description": ""
+    }
+}

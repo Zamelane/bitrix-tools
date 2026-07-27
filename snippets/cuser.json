@@ -1,0 +1,68 @@
+{
+    "CUser.add": {
+        "prefix": "CUserAdd",
+        "body": [
+            "\\$rsUser = new CUser;",
+            "\\$dctFields = Array(",
+            "\t'NAME'             => '${1:username}',",
+            "\t'LAST_NAME'        => '${2:usernamelast}',",
+            "\t'EMAIL'            => '${3:usremail}',",
+            "\t'LOGIN'            => '${4:login}',",
+            "\t'ACTIVE'           => 'Y',",
+            "\t'GROUP_ID'         => array('${5:groups}'),",
+            "\t'PASSWORD'         => '${6:userpass}',",
+            ");",
+            "",
+            "\\$id = \\$rsUser->Add(\\$dctFields);",
+            "if(!\\$id) {",
+            "\techo \\$rsUser->LAST_ERROR;",
+            "}"
+        ],
+        "description": "Создает нового пользователя."
+    },
+    "CUser.delete": {
+        "prefix": "CUserDelete",
+        "body": [
+            "CUser::Delete('${1:usrid}');"
+        ],
+        "description": "Удаляет пользователя."
+    },
+    "CUser.GetByID": {
+        "prefix": "CUserGetById",
+        "body": [
+            "\\$dctUser = CUser::GetByID('${1:usrid}')->fetch();",
+            "if(is_array(\\$dctUser)) {",
+            "\tvar_export(\\$dctUser);",
+            "}"
+        ],
+        "description": "Возвращает пользователя по его ID."
+    },
+    "CUser.GetList": {
+        "prefix": ["CUserGetList","UserList","UserGetList","ListUser"],
+        "body": [
+            "// https://dev.1c-bitrix.ru/api_help/main/reference/cuser/getlist.php",
+            "\\$dctFilter = [",
+            "\t\t'ID'                  => '1 | 2',",
+            "\t\t'GROUPS_ID'           => [1,4,10]",
+            "\t];",
+            "\\$rdb = \\\\CUser::GetList((\\$by='personal_country'), (\\$order='desc'), \\$dctFilter);",
+            "while (\\$dctUsers = \\$rdb->fetch()) {",
+            "\t",
+            "}"
+        ],
+        "description": "Возвращает список пользователей."
+    },
+    "CUser.Update": {
+        "prefix": "CUserUpdate",
+        "body": [
+            "\\$dctFields = array(",
+            "\t'NAME'  => '${1:newusername}',",
+            "\t'EMAIL' => '${2:newusremail}',",
+            "\t//...",
+            ");",
+            "\\$rsUser = new CUser;",
+            "\\$rsUser->Update('${3:usrID}', \\$dctFields);"
+        ],
+        "description": "Изменяет существующий сайт."
+    }
+}

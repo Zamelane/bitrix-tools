@@ -1,0 +1,66 @@
+{
+    "CIBlockSection.Add": {
+        "prefix": ["CIBlockSectionAdd","AddSection"],
+        "body": [
+            "\\$rsSection = new CIBlockSection;",
+            "\\$dctFields = array(",
+            "\t'ACTIVE'    => 'Y',",
+            "\t'IBLOCK_ID' => '${1:iblock_id}',",
+            "\t'NAME'      => '${2:name}',",
+            ");",
+            "if(!\\$id = \\$rsSection->Add(\\$dctFields)) {",
+            "\techo 'Error:' . \\$rsSection->LAST_ERROR;",
+            "}"
+        ],
+        "description": "Добавляет в информационный блок новый раздел."
+    },
+    "CIBlockSection.Delete": {
+        "prefix": ["CIBlockSectionDel","DeleteSection"],
+        "body": [
+            "\\\\CIBlockSection::Delete(${1:'SectionID'});"
+        ],
+        "description": "Удаляет раздел из информационного блока."
+    },
+    "CIBlockSection.GetByID": {
+        "prefix": "CIBlockSectionID",
+        "body": [
+            "\\$dctSection = CIBlockSection::GetByID(${1:'SectionID'})->fetch();",
+            "if(is_array(\\$dctSection)) {",
+            "\t${2://body ...}",
+            "}"
+        ],
+        "description": "Возвращает параметры раздела по его коду ID."
+    },
+    "CIBlockSection.GetList": {
+        "prefix": ["CIBlockSectionList","GetListSection"],
+        "body": [
+            "//https://dev.1c-bitrix.ru/api_help/iblock/classes/ciblocksection/getlist.php",
+            "\\$rdbSection = \\\\CIBlockSection::GetList(",
+            "\t\\$dctOrder  = ['SORT' => 'ASC'],",
+            "\t\\$dctFilter = [",
+            "\t\t'ACTIVE'    => 'Y',",
+            "\t\t${1}",
+            "\t],",
+            "\tfalse,",
+            "\t\\$lstSelect = ['ID', 'NAME', 'IBLOCK_ID', 'CODE', 'UF_*'],",
+            "\tfalse",
+            ");",
+            "while(\\$dctSection = \\$rdbSection->fetch()) {",
+            "\t\\$lstSections[] = \\$dctSection;",
+            "}"
+        ],
+        "description": "Возвращает список разделов по фильтру."
+    },
+    "CIBlockSection.Update": {
+        "prefix": "CIBlocSectionUpdate",
+        "body": [
+            "\\$rsSection = new CIBlockSection;",
+            "\\$dctFields = array(",
+            "\t'ACTIVE' => 'Y',",
+            "\t${2://...}",
+            ");",
+            "\\$rsIDSection = \\$rsSection->Update(${1:'id'}, \\$dctFields);"
+        ],
+        "description": "Изменяет параметры существующего раздела."
+    }
+}

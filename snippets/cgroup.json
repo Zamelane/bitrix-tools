@@ -1,0 +1,74 @@
+{
+    "CGroup.Add": {
+        "prefix": "cgroupadd",
+        "body": [
+            "\\$rsGroup = new CGroup;",
+            "\\$dctFields = Array(",
+            "\t'ACTIVE'       => 'Y',",
+            "\t'C_SORT'       => 100,",
+            "\t'NAME'         => '${1:groupName}',",
+            "\t'DESCRIPTION'  => '${2:desc}',",
+            "\t'USER_ID'      => array('${3:usersID}'),",
+            ");",
+            "\\$id = \\$group->Add(\\$dctFields);",
+            "if (strlen(\\$rsGroup->LAST_ERROR)>0) echo \\$rsGroup->LAST_ERROR;"
+        ],
+        "description": "Добавляет новую группу пользователей."
+    },
+
+    "CGroup.Delete": {
+        "prefix": ["cgroupdelete","DeleteGroup"],
+        "body": [
+            "\\$rsGroup = new CGroup;",
+            "if(!\\$rsGroup->Delete('${1:groupID}')) {",
+            "\techo 'Group Delete';",
+            "}"
+        ],
+        "description": "Удаляет группу."
+    },
+    "CGroup.GetByID": {
+        "prefix": "cgroupgetby",
+        "body": [
+            "\\$dctGroup = CGroup::GetByID('${1:groupID}', 'Y')->fetch();",
+            "if(is_array(\\$dctGroup)) {",
+            "\tvar_export(\\$dctGroup);",
+            "}"
+        ],
+        "description": "Получает данные о группе по ее ID."
+    },
+    "CGroup.GetList": {
+        "prefix": ["cgroupgetlist","GetListGroup"],
+        "body": [
+            "\\$dctFilter = array(",
+            "\t'ID'        => '${1:groupID}',",
+            "\t'ACTIVE'    => 'Y',",
+            "\t//...",
+            ");",
+            "",
+            "\\$rdbGroups = CGroup::GetList(",
+            "\t(\\$by = 'c_sort'),",
+            "\t(\\$order = 'desc'),",
+            "\t\\$dctFilter",
+            ");",
+            "while(\\$dctGroup = \\$rdbGroups->fetch()) {",
+            "\tvar_export(\\$dctGroup);",
+            "}"
+        ],
+        "description": "Получает список групп по фильтру."
+    },
+    "CGroup.Update": {
+        "prefix": ["cgroupupdate","UpdateGroup"],
+        "body": [
+            "\\$dctFields = array(",
+            "\t'ID'     => '${1:groupID}',",
+            "\t'NAME'   => '${1:newgroupname}'",
+            ");",
+            "",
+            "\\$rsGroup = new CGroup;",
+            "\\$rsGroup->Update('${2:groupID}', \\$dctFields);",
+            "if (strlen(\\$rsGroup->LAST_ERROR)>0) echo \\$rsGroup->LAST_ERROR;"
+        ],
+        "description": "Изменяет существующую группу."
+    }
+
+}

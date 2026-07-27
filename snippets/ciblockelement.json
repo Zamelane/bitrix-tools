@@ -1,0 +1,139 @@
+{
+    "CIBlockElement.GetElementGroups": {
+        "prefix": ["CIBlockElementGetElementGroups","CIBlockElementGroups","ElementSections","все разделы элемента"],
+        "body": [
+			"\\$rdbCurrentSections = \\\\CIBlockElement::GetElementGroups(",
+			"\t\t\\$ElementId,",
+			"\t\ttrue, // необходимость выборки привязок и из свойств типа 'Привязка к разделу'. true - не выбирать, по умолчанию false",
+			"\t\t['ID','IBLOCK_ID']",
+			"\t);",
+			"while(\\$dctSection = \\$rdbCurrentSections->Fetch()) {",
+			"\t\\$lstCurrentSectionsIDs[] = \\$dctSection['ID'];",
+			"}"
+        ],
+        "description": "Получить все разделы элемента к которому он привязан"
+    },
+	"CIBlockElement.Add": {
+        "prefix": ["CIBlockElementAdd","AddElement"],
+        "body": [
+            "\\$rsElement = new \\\\CIBlockElement;",
+            "\\$dctFields = array(",
+            "\t'ACTIVE'            => 'Y',",
+            "\t'NAME'              => '${1:name}',",
+            "\t'PROPERTY_VALUES'   => array(",
+            "\t\t//propertys array ...",
+            "\t)",
+            ");",
+            "if(!\\$id = \\$rsElement->Add(\\$dctFields)) {",
+            "\techo 'Error:' . \\$rsElement->LAST_ERROR;",
+            "}"
+        ],
+        "description": "Добавляет новый элемент."
+    },
+    "CIBlockElement.Delete": {
+        "prefix": ["CIBlockElementDel","DeleteElement"],
+        "body": [
+            "\\\\CIBlockElement::Delete('${1:ID}');"
+        ],
+        "description": "Удаляет элемент из информационного блока."
+    },
+    "CIBlockElement.GetByID": {
+        "prefix": "CIBlockElementID",
+        "body": [
+            "\\$dctElement = \\\\CIBlockElement::GetByID('${1:ID}')->fetch();",
+            "if(is_array(\\$dctElement)) {",
+            "\t//body ...",
+            "}"
+        ],
+        "description": "Возвращает элемент по его ID."
+    },
+    "CIBlockElement.GetList+": {
+        "prefix": ["CIBlockElementList","GetListElements"],
+        "body": [
+            "//http://dev.1c-bitrix.ru/api_help/iblock/classes/ciblockelement/getlist.php",
+			"/*",
+			"Обязательно должно быть использовано поле IBLOCK_ID.",
+			"В качестве одного из полей необходимо указать PROPERTY_<PROPERTY_CODE>,",
+			"где PROPERTY_CODE - ID или мнемонический код.",
+			"Будут выведены значения свойств элемента",
+			"в виде полей PROPERTY_<PROPERTY_CODE>_VALUE - значение;",
+			"PROPERTY_<PROPERTY_CODE>_ID - код значения у элемента;",
+			"PROPERTY_<PROPERTY_CODE>_ENUM_ID - код значения (для свойств типа список).",
+			"При установленном модуле торгового каталога можно выводить цены элемента.",
+			"Для этого в качестве одного из полей необходимо указать CATALOG_GROUP_<PRICE_CODE>,",
+			"где PRICE_CODE - ID типа цены.",
+			"Есть возможность выбрать поля элементов по значениям свойства типа \"Привязка к элементам\".",
+			"Для этого необходимо указать  PROPERTY_<PROPERTY_CODE>.<FIELD>,",
+			"где PROPERTY_CODE - ID или мнемонический код свойства привязки,",
+			"а FIELD - поле указанного в привязке элемента.",
+			"*/",
+			"\\$lstSelect = [",
+			"\t\t'IBLOCK_ID',",
+			"\t\t'ID',",
+			"\t\t'NAME',",
+			"\t\t'PREVIEW_TEXT',",
+			"\t\t'PREVIEW_PICTURE',",
+			"\t\t'DETAIL_TEXT',",
+			"\t\t'DETAIL_PICTURE'",
+			"\t];",
+			"/*",
+			"PROPERTY_<PROPERTY_CODE> - фильтр по значениям свойств.",
+			"PROPERTY_<PROPERTY_CODE>_VALUE - фильтр по значениям списка для свойств типа \"список\".",
+			"CATALOG_<CATALOG_FIELD>_<PRICE_TYPE> - по полю CATALOG_FIELD из цены типа PRICE_TYPE (ID типа цены),",
+			"где CATALOG_FIELD может быть: PRICE - цена, CURRENCY - валюта.",
+			"PROPERTY_<PROPERTY_CODE>.<FIELD> - фильтр по значениям полей связанных элементов,",
+			"где PROPERTY_CODE - ID или мнемонический код свойства привязки,",
+			"а FIELD - поле указанного в привязке элемента.",
+			"*/",
+			"\\$dctFilter = [",
+			"\t\t'IBLOCK_ID'=> \\$IBLOCK_ID,",
+			"\t\t'SECTION_ID' => \\$SECTION_ID,",
+			"\t\t'ACTIVE_DATE' => 'Y',",
+			"\t\t'ACTIVE'=>'Y'",
+			"\t ];",
+			"/*",
+			"CIBlockElement::GetList(",
+			"\t array arOrder = ['SORT'=>'ASC'], - сортировка",
+			"\t array arFilter = [], - фильтр.",
+			"\t mixed arGroupBy = false, - группировка.",
+			"\t mixed arNavStartParams = false, - параметры для постраничной навигации.",
+			"\t array arSelectFields = [] - выбираемые поля и свойства.",
+			"\t );",
+			"*/",
+			"\\$rdb = \\\\CIBlockElement::GetList([], \\$dctFilter, false, false, \\$lstSelect);",
+			"//while(\\$element = \\$rdb->GetNextElement()) {",
+			"//\t\\$dctElement = \\$element->GetFields();",
+			"//\t\\$lstElements[] = \\$dctElement;",
+			"//}",
+			"//\\$CNT = \\$rdb->SelectedRowsCount(); // количестов елементов",
+			"while(\\$dctElement = \\$rdb->fetch()) {",
+			"\t\\$lstElements[] = \\$dctElement;",
+			"}"
+        ],
+        "description": "Возвращает список элементов по фильтру."
+    },
+    "CIBlockElement.Update": {
+        "prefix": ["CIBlocElementUpdate","UpdateElement"],
+        "body": [
+            "\\$rsElement = new \\\\CIBlockElement;",
+            "\\$dctFields = array(",
+            "\t'ACTIVE'    => 'Y',",
+            "\t//...",
+            ");",
+            "\\$rsIDElement = \\$rsElement->Update(${1:'id'}, \\$dctFields);"
+        ],
+        "description": "Изменяет элемент."
+    },
+    "CIBlockElement.SetPropertyValuesEx": {
+        "prefix": ["CIBlockElementSetPropertyValuesEx","CIBlockElementUpdatePropertyValuesEx","ElementPropertySet","ElementPropertyUpdate"],
+        "body": [
+            "// https://dev.1c-bitrix.ru/api_help/iblock/classes/ciblockelement/setpropertyvaluesex.php",
+            "\\\\CIBlockElement::SetPropertyValuesEx(",
+            "\t\t\\$ElementId, // Ид элемента",
+            "\t\tfalse, // Ид информационного блока (Может быть не указан.) ",
+            "\t\t[\\$PropCode => \\$Value] // Массив значений свойств ",
+            "\t);"
+        ],
+        "description": "Изменяет значение свойства элемента"
+    }
+}

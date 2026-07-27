@@ -1,0 +1,16 @@
+{
+    "D7section": {
+        "prefix": ["d7SectionList","d7SectionsList","d7GetListSection"],
+        "body": [
+            "\\$rdbSections = \\\\Bitrix\\\\Iblock\\\\SectionTable::getList(array(",
+            "\t'select' => array('NAME'),",
+            "\t'filter' => array('ID' => '${1:id}')",
+            "));",
+            "",
+            "while (\\$dctSection = \\$rdbSections->fetch()) {",
+            "\tvar_export(\\$dctSection);",
+            "}"
+        ],
+        "description": ""
+    }
+}
