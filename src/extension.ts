@@ -8,6 +8,10 @@ import {
 } from "./vscode/commands/chooseTemplateCommand";
 import { ComponentLinkProvider } from "./vscode/providers/ComponentLinkProvider";
 
+/**
+ * Активирует расширение
+ * @param context - контекст расширения VS Code
+ */
 export function activate(context: vscode.ExtensionContext): void {
   const componentService = new ComponentService(pathExists, listDirectories);
   const componentLinkProvider = new ComponentLinkProvider(componentService);
@@ -21,4 +25,5 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 }
 
+/** Деактивирует расширение */
 export function deactivate(): void {}

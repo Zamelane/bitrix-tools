@@ -6,26 +6,26 @@ import {
   TemplateResolution,
 } from "./types";
 
-// Bitrix's convention: an empty template name in IncludeComponent means
-// "use the component's shipped default template", which lives in a
-// folder literally named ".default".
+// Empty template name means use .default folder.
 const DEFAULT_TEMPLATE_FOLDER = ".default";
 
-// local/ overrides bitrix/ as a whole tier, same convention as component
-// resolution: if local/templates has ANY match, bitrix/templates is never
-// even considered. Ambiguity (multiple site templates) can therefore only
-// ever happen *within* one of these tiers, never by mixing the two.
+// local/ overrides bitrix/ entirely. Ambiguity only within one tier.
 const TEMPLATE_ROOTS = ["local", "bitrix"] as const;
 
+/**
+ * Преобразует пустое имя шаблона в .default.
+ * @param templateName - имя шаблона
+ * @returns эффективное имя папки шаблона
+ */
 function effectiveTemplateFolder(templateName: string): string {
   return templateName === "" ? DEFAULT_TEMPLATE_FOLDER : templateName;
 }
 
-// Defense in depth: the parser already restricts the template-name charset
-// so it can't contain path separators or "..", but this module shouldn't
-// rely solely on callers upstream having sanitized their input before it
-// reaches path.join. Also applied to the user-configured siteTemplate
-// setting, which is just as capable of reaching path.join.
+/**
+ * Проверяет сегмент на отсутствие path-traversal.
+ * @param segment - сегмент пути
+ * @returns true если безопасен
+ */
 function isSafeTemplateFolder(segment: string): boolean {
   return (
     segment !== "." &&
@@ -36,14 +36,15 @@ function isSafeTemplateFolder(segment: string): boolean {
 }
 
 /**
- * Site-template-scoped lookup: local/templates/{siteTemplate}/components/{ns}/{name}/{template}
- * and the bitrix/ equivalent. If `siteTemplate` is given (from the
- * `bitrixTools.siteTemplate` setting) only that one is checked — this is
- * the escape hatch for multi-site installs, where the real site template
- * is chosen at runtime from the database and can't be determined
- * statically. Without it, every site template folder found on disk at the
- * winning tier is checked; if more than one has a match, the result is
- * reported as ambiguous instead of guessing.
+ * Поиск через шаблоны сайта.
+ * @param siteRoot - корень сайта
+ * @param namespace - пространство имен компонента
+ * @param name - имя компонента
+ * @param templateFolder - папка шаблона
+ * @param siteTemplate - настроенный шаблон или null
+ * @param exists - функция проверки существования
+ * @param listDirectories - функция списка директорий
+ * @returns результат разрешения
  */
 async function findViaSiteTemplates(
   siteRoot: string,
@@ -89,10 +90,13 @@ async function findViaSiteTemplates(
 }
 
 /**
- * Fallback when no site-template override exists: the template bundled
- * directly with the component itself, e.g.
- * local/components/{ns}/{name}/templates/{template}. Never ambiguous —
- * there's exactly one such location per components root.
+ * Поиск через встроенные шаблоны компонента.
+ * @param siteRoot - корень сайта
+ * @param namespace - пространство имен компонента
+ * @param name - имя компонента
+ * @param templateFolder - папка шаблона
+ * @param exists - функция проверки существования
+ * @returns путь к шаблону или null
  */
 async function findViaBundledTemplates(
   siteRoot: string,
@@ -118,11 +122,28 @@ async function findViaBundledTemplates(
   return null;
 }
 
+/**
+ * Возвращает template.php если есть, иначе директорию.
+ * @param dir - директория шаблона
+ * @param exists - функция проверки существования
+ * @returns путь к файлу или директории
+ */
 async function toEntryFile(dir: string, exists: PathExists): Promise<string> {
   const entryFile = path.join(dir, "template.php");
   return (await exists(entryFile)) ? entryFile : dir;
 }
 
+/**
+ * Разрешает директорию шаблона
+ * @param namespace - пространство имен компонента
+ * @param name - имя компонента
+ * @param templateName - имя шаблона
+ * @param siteRoot - корень сайта
+ * @param siteTemplate - настроенный шаблон или null
+ * @param exists - функция проверки существования
+ * @param listDirectories - функция списка директорий
+ * @returns результат разрешения
+ */
 export async function resolveTemplateDir(
   namespace: string,
   name: string,
@@ -164,6 +185,17 @@ export async function resolveTemplateDir(
   return bundledPath ? { kind: "resolved", path: bundledPath } : { kind: "none" };
 }
 
+/**
+ * Разрешает файл шаблона
+ * @param namespace - пространство имен компонента
+ * @param name - имя компонента
+ * @param templateName - имя шаблона
+ * @param siteRoot - корень сайта
+ * @param siteTemplate - настроенный шаблон или null
+ * @param exists - функция проверки существования
+ * @param listDirectories - функция списка директорий
+ * @returns результат разрешения
+ */
 export async function resolveTemplateFile(
   namespace: string,
   name: string,

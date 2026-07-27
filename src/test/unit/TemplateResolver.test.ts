@@ -282,8 +282,7 @@ test("returns none when the template exists nowhere", async () => {
 });
 
 test("refuses to resolve a template name containing path separators, even if it bypasses the parser", async () => {
-  // Everything "exists" here on purpose: this proves the rejection comes
-  // from validating the segment itself, not from a missing file.
+  // Proves rejection comes from segment validation, not missing file.
   const exists = async () => true;
   const listDirectories = fakeListDirectories({
     [path.join(ROOT, "local", "templates")]: ["aspro_max"],

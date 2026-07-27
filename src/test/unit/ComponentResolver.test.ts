@@ -126,9 +126,7 @@ test("findSiteRoot is not fooled by a bare bitrix/ folder without modules/ (e.g.
     "some-lib",
     "src"
   );
-  // Only a bare "bitrix" dir exists partway up (no "modules" inside it),
-  // simulating a composer-installed IDE stub package. The walk must skip
-  // past it and keep going up to the real docroot.
+  // Simulates composer-installed IDE stub - walk must skip bare bitrix/ dir.
   const exists = fakeFs([
     path.join(siteRoot, "local", "components", "vendor", "bitrix"),
     path.join(siteRoot, "bitrix", "modules"),

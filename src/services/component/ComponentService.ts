@@ -3,16 +3,20 @@ import { findSiteRoot, resolveComponentFile } from "./ComponentResolver";
 import { resolveTemplateFile } from "./TemplateResolver";
 import { ListDirectories, PathExists, ResolvedLink } from "./types";
 
-/**
- * Facade over the component/template parser and resolvers. This is the
- * only entry point the VS Code adapter layer is allowed to talk to.
- */
+/** Фасад для работы с компонентами */
 export class ComponentService {
   constructor(
     private readonly pathExists: PathExists,
     private readonly listDirectories: ListDirectories
   ) {}
 
+  /**
+   * Находит кликабельные ссылки
+   * @param text - содержимое документа
+   * @param documentDir - директория документа
+   * @param siteTemplate - настроенный шаблон сайта или null
+   * @returns массив разрешенных ссылок
+   */
   async findLinks(
     text: string,
     documentDir: string,

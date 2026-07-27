@@ -7,12 +7,11 @@ export interface TemplateCandidateArg {
   targetPath: string;
 }
 
-// The command is registered globally (vscode.commands.registerCommand), so
-// in principle it's invocable with any arguments, not just the well-formed
-// ones our own DocumentLinkProvider encodes — TS types on the parameter
-// aren't enforced at runtime. Guard against malformed entries explicitly
-// rather than letting a bad candidate crash the async command with a
-// generic "command failed" notification.
+/**
+ * Проверяет валидность аргумента кандидата.
+ * @param candidate - проверяемое значение
+ * @returns true если валидный TemplateCandidateArg
+ */
 function isWellFormedCandidate(
   candidate: unknown
 ): candidate is TemplateCandidateArg {
@@ -27,9 +26,8 @@ function isWellFormedCandidate(
 }
 
 /**
- * Invoked by clicking an ambiguous template DocumentLink (a `command:`
- * URI). Lets the user pick which site template to open when more than one
- * matched on disk, instead of silently guessing one.
+ * Показывает выбор шаблона
+ * @param candidates - список кандидатов
  */
 export async function chooseTemplateCommand(
   candidates: TemplateCandidateArg[]

@@ -1,5 +1,10 @@
 import * as fs from "node:fs/promises";
 
+/**
+ * Возвращает список директорий
+ * @param dirPath - путь к директории
+ * @returns массив имен директорий
+ */
 export async function listDirectories(dirPath: string): Promise<string[]> {
   try {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });

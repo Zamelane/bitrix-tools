@@ -3,14 +3,10 @@ import { PathExists } from "./types";
 
 const COMPONENT_ROOTS = ["local", "bitrix"] as const;
 
-// component.php is the conventional entry point; class.php is the next
-// best thing when a component only ships a component class with no
-// standalone component.php (common for newer/OOP-style components).
+// component.php is conventional entry; class.php for OOP-only components.
 const COMPONENT_ENTRY_FILES = ["component.php", "class.php"] as const;
 
-// Bounds the upward directory walk in findSiteRoot so a file with no
-// Bitrix ancestor (e.g. opened outside any site) can't scan past a
-// sane number of levels before giving up.
+// Limit upward walk to prevent infinite scanning outside Bitrix sites.
 const MAX_SITE_ROOT_SEARCH_DEPTH = 32;
 
 function isSafePathSegment(segment: string): boolean {
@@ -18,13 +14,11 @@ function isSafePathSegment(segment: string): boolean {
 }
 
 /**
- * Walks up from `startDir` looking for the nearest ancestor that looks like
- * a real Bitrix site docroot. `bitrix/modules` (not just a bare `bitrix/`
- * folder) is used as the marker — a bare `bitrix/` can also show up in
- * vendored IDE-stub packages (e.g. `vendor/bitrix/...`), which would
- * otherwise cause the walk to stop one level too early. This lets
- * navigation work regardless of which folder is open as the VS Code
- * workspace root, since the docroot is often nested (e.g. `www/public/`).
+ * Ищет корень сайта вверх по дереву директорий.
+ * Использует `bitrix/modules` как маркер реального docroot.
+ * @param startDir - начальная директория поиска
+ * @param exists - функция проверки существования пути
+ * @returns путь к корню сайта или null
  */
 export async function findSiteRoot(
   startDir: string,
@@ -47,6 +41,14 @@ export async function findSiteRoot(
   return null;
 }
 
+/**
+ * Находит директорию компонента
+ * @param namespace - пространство имен компонента
+ * @param name - имя компонента
+ * @param siteRoot - корень сайта
+ * @param exists - функция проверки существования
+ * @returns путь к директории или null
+ */
 export async function resolveComponentDir(
   namespace: string,
   name: string,
@@ -72,6 +74,14 @@ export async function resolveComponentDir(
   return null;
 }
 
+/**
+ * Находит файл компонента (component.php или class.php)
+ * @param namespace - пространство имен компонента
+ * @param name - имя компонента
+ * @param siteRoot - корень сайта
+ * @param exists - функция проверки существования
+ * @returns путь к файлу или директории
+ */
 export async function resolveComponentFile(
   namespace: string,
   name: string,

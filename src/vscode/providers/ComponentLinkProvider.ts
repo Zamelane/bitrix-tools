@@ -3,9 +3,15 @@ import * as vscode from "vscode";
 import { ComponentService } from "../../services/component/ComponentService";
 import { CHOOSE_TEMPLATE_COMMAND_ID } from "../commands/chooseTemplateCommand";
 
+/** Провайдер ссылок на компоненты и шаблоны */
 export class ComponentLinkProvider implements vscode.DocumentLinkProvider {
   constructor(private readonly componentService: ComponentService) {}
 
+  /**
+   * Находит ссылки в документе
+   * @param document - документ VS Code
+   * @returns массив ссылок
+   */
   async provideDocumentLinks(
     document: vscode.TextDocument
   ): Promise<vscode.DocumentLink[]> {
@@ -43,6 +49,11 @@ export class ComponentLinkProvider implements vscode.DocumentLinkProvider {
     });
   }
 
+  /**
+   * Читает настройку шаблона сайта
+   * @param uri - URI документа
+   * @returns имя шаблона или null
+   */
   private readSiteTemplateSetting(uri: vscode.Uri): string | null {
     const value = vscode.workspace
       .getConfiguration("bitrixTools", uri)
