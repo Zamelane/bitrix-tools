@@ -1,9 +1,17 @@
 {
   "name": "bitrix-tools",
   "displayName": "Bitrix Tools",
-  "description": "Navigation and helpers for 1C-Bitrix development",
+  "description": "Быстрая навигация по компонентам и шаблонам 1С-Битрикс",
   "version": "0.0.1",
   "publisher": "zamelane",
+  "icon": "icon.jpeg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zamelane/bitrix-tools"
+  },
+  "bugs": {
+    "url": "https://github.com/zamelane/bitrix-tools/issues"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
